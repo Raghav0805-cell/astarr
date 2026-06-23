@@ -1,0 +1,6 @@
+{
+  "name": "ASTARR!",
+  "description": "A premium, hyper-cinematic music application that begins with an immersive audio-visual intro and landing dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
