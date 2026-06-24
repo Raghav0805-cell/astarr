@@ -48,6 +48,233 @@ app.get("/api/server/diagnose", (req, res) => {
   });
 });
 
+// Robust YouTube scraper fallback function
+const scrapeYoutubeSearch = async (query: string): Promise<any> => {
+  const searchQueryString = `${query} official audio`;
+  // Force search results to only show video content
+  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(searchQueryString)}&sp=EgIQAQ%253D%253D`;
+  
+  console.log(`[Scraper Fetch] Scraping live Youtube for query: "${query}"`);
+  
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept-Language": "en-US,en;q=0.9",
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Scraper failed to fetch YouTube page: ${response.status}`);
+  }
+
+  const html = await response.text();
+  
+  let json: any = null;
+  const regex = /ytInitialData\s*=\s*({.+?});/;
+  const match = html.match(regex);
+  if (match) {
+    try {
+      json = JSON.parse(match[1]);
+    } catch (e) {
+      console.warn("Failed to parse ytInitialData JSON via main regex", e);
+    }
+  }
+
+  if (!json) {
+    const altRegex = /ytInitialData\s*=\s*({.+?})\s*<\/script>/;
+    const altMatch = html.match(altRegex);
+    if (altMatch) {
+      try {
+        json = JSON.parse(altMatch[1]);
+      } catch (e) {
+        console.warn("Failed to parse ytInitialData JSON via alt regex", e);
+      }
+    }
+  }
+
+  const videoItems: any[] = [];
+
+  if (json) {
+    const sectionList = json.contents?.twoColumnSearchResultRenderer?.primaryContents?.sectionListRenderer?.contents || [];
+    
+    for (const section of sectionList) {
+      const itemSection = section.itemSectionRenderer?.contents || [];
+      for (const item of itemSection) {
+        if (item.videoRenderer) {
+          const vr = item.videoRenderer;
+          
+          const videoId = vr.videoId;
+          const title = vr.title?.runs?.[0]?.text || "";
+          const channelTitle = vr.ownerText?.runs?.[0]?.text || vr.shortBylineText?.runs?.[0]?.text || "";
+          const thumbnails = vr.thumbnail?.thumbnails || [];
+          const coverUrl = thumbnails[thumbnails.length - 1]?.url || thumbnails[0]?.url || "";
+          
+          const lengthText = vr.lengthText?.simpleText || "";
+          let durationSeconds = 210;
+          if (lengthText) {
+            const parts = lengthText.split(":").map(Number);
+            if (parts.length === 2) {
+              durationSeconds = parts[0] * 60 + parts[1];
+            } else if (parts.length === 3) {
+              durationSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+            }
+          }
+          
+          const viewCountText = vr.viewCountText?.simpleText || vr.shortViewCountText?.simpleText || "250K views";
+          let views = "250K";
+          const viewMatch = viewCountText.match(/([\d.,]+[MKB]?)\s*views/i);
+          if (viewMatch) {
+            views = viewMatch[1];
+          } else {
+            const rawViews = viewCountText.replace(/[^0-9KMB]/g, '');
+            if (rawViews) views = rawViews;
+          }
+
+          let year = 2026;
+          const publishedTimeText = vr.publishedTimeText?.simpleText || "";
+          if (publishedTimeText) {
+            const yearMatch = publishedTimeText.match(/(\d+)\s*years?\s*ago/i);
+            if (yearMatch) {
+              year = 2026 - parseInt(yearMatch[1]);
+            }
+          }
+
+          if (videoId && title) {
+            videoItems.push({
+              id: { videoId },
+              snippet: {
+                title,
+                channelTitle,
+                thumbnails: {
+                  high: { url: coverUrl },
+                  medium: { url: coverUrl }
+                },
+                publishedAt: `${year}-01-01T00:00:00Z`
+              }
+            });
+            
+            // Populate the details cache instantly so subsequent queries get instant metadata
+            const cacheKeyDefault = `${videoId}_default`;
+            const cacheKeyCustom = `${videoId}_custom`;
+            const cacheKeyRaw = videoId;
+            const cacheData = {
+              items: [
+                {
+                  id: videoId,
+                  contentDetails: {
+                    duration: `PT${Math.floor(durationSeconds / 60)}M${durationSeconds % 60}S`
+                  },
+                  statistics: {
+                    viewCount: String(parseInt(views.replace(/[^0-9]/g, '')) * 1000 || 250000)
+                  }
+                }
+              ]
+            };
+            
+            detailsCache[cacheKeyDefault] = cacheData;
+            detailsCache[cacheKeyCustom] = cacheData;
+            detailsCache[cacheKeyRaw] = cacheData;
+          }
+        }
+      }
+    }
+  }
+
+  // Double Check Regex-based extraction if main JSON parse returned zero items
+  if (videoItems.length === 0) {
+    console.log("[Scraper Fallback] Parsing search layout via manual regular expressions...");
+    const videoRegex = /"videoRenderer":\s*({.+?})/g;
+    let matchArr;
+    let limit = 0;
+    while ((matchArr = videoRegex.exec(html)) !== null && limit < 15) {
+      try {
+        const itemStr = matchArr[1];
+        let openBraces = 1;
+        let endIdx = 0;
+        for (let i = 1; i < itemStr.length; i++) {
+          if (itemStr[i] === '{') openBraces++;
+          else if (itemStr[i] === '}') openBraces--;
+          if (openBraces === 0) {
+            endIdx = i;
+            break;
+          }
+        }
+        if (endIdx > 0) {
+          const cleanItemStr = "{" + itemStr.substring(1, endIdx + 1);
+          const vr = JSON.parse(cleanItemStr);
+          const videoId = vr.videoId;
+          const title = vr.title?.runs?.[0]?.text || "";
+          const channelTitle = vr.ownerText?.runs?.[0]?.text || vr.shortBylineText?.runs?.[0]?.text || "";
+          const thumbnails = vr.thumbnail?.thumbnails || [];
+          const coverUrl = thumbnails[thumbnails.length - 1]?.url || thumbnails[0]?.url || "";
+          
+          const lengthText = vr.lengthText?.simpleText || "";
+          let durationSeconds = 210;
+          if (lengthText) {
+            const parts = lengthText.split(":").map(Number);
+            if (parts.length === 2) {
+              durationSeconds = parts[0] * 60 + parts[1];
+            } else if (parts.length === 3) {
+              durationSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+            }
+          }
+          
+          const viewCountText = vr.viewCountText?.simpleText || vr.shortViewCountText?.simpleText || "250K views";
+          let views = "250K";
+          const viewMatch = viewCountText.match(/([\d.,]+[MKB]?)\s*views/i);
+          if (viewMatch) {
+            views = viewMatch[1];
+          }
+
+          if (videoId && title) {
+            videoItems.push({
+              id: { videoId },
+              snippet: {
+                title,
+                channelTitle,
+                thumbnails: {
+                  high: { url: coverUrl },
+                  medium: { url: coverUrl }
+                },
+                publishedAt: `2026-01-01T00:00:00Z`
+              }
+            });
+            
+            const cacheKeyDefault = `${videoId}_default`;
+            const cacheKeyCustom = `${videoId}_custom`;
+            const cacheKeyRaw = videoId;
+            const cacheData = {
+              items: [
+                {
+                  id: videoId,
+                  contentDetails: {
+                    duration: `PT${Math.floor(durationSeconds / 60)}M${durationSeconds % 60}S`
+                  },
+                  statistics: {
+                    viewCount: String(parseInt(views.replace(/[^0-9]/g, '')) * 1000 || 250000)
+                  }
+                }
+              ]
+            };
+            detailsCache[cacheKeyDefault] = cacheData;
+            detailsCache[cacheKeyCustom] = cacheData;
+            detailsCache[cacheKeyRaw] = cacheData;
+            limit++;
+          }
+        }
+      } catch (e) {
+        // Skip malformed entries
+      }
+    }
+  }
+
+  if (videoItems.length === 0) {
+    throw new Error("Scraper could not find any videos on YouTube results page.");
+  }
+
+  return { items: videoItems };
+};
+
 // A) Secure YouTube API Key Proxy for searches
 const runYoutubeSearch = async (query: string, customKey?: string) => {
   const activeKey = customKey && customKey.trim() !== "" ? customKey.trim() : YT_API_KEY;
@@ -81,8 +308,15 @@ app.get("/api/youtube/search", async (req, res) => {
     searchCache[queryClean] = data;
     res.json(data);
   } catch (error: any) {
-    console.error("YouTube search proxy error: ", error.message);
-    res.status(500).json({ error: "Failed to fetch YouTube search list: " + error.message });
+    console.warn("YouTube search API failed or quota exceeded. Attempting live scraper fallback: ", error.message);
+    try {
+      const data = await scrapeYoutubeSearch(query);
+      searchCache[queryClean] = data;
+      res.json(data);
+    } catch (scrapeError: any) {
+      console.error("YouTube search scraper fallback also failed: ", scrapeError.message);
+      res.status(500).json({ error: "Failed to fetch live YouTube results: " + scrapeError.message });
+    }
   }
 });
 

@@ -965,6 +965,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
       }
 
       ytPlayerRef.current = new (window as any).YT.Player('cyber-video-player', {
+        host: 'https://www.youtube-nocookie.com',
         height: '100%',
         width: '100%',
         videoId: videoId,
