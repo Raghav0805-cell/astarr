@@ -2,6 +2,10 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dns from "dns";
+import dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 // Handle ipv4 routing correctly
 dns.setDefaultResultOrder("ipv4first");
@@ -13,7 +17,7 @@ const PORT = 3000;
 const searchCache: Record<string, any> = {};
 const detailsCache: Record<string, any> = {};
 
-const YT_API_KEY = process.env.YOUTUBE_API_KEY || process.env.YT_API_KEY || "AIzaSyCn_EpSMATON5VAbUkdpANrgRHzZccYddw";
+const YT_API_KEY = process.env.YOUTUBE_API_KEY || process.env.YT_API_KEY || process.env.VITE_YOUTUBE_API_KEY || "AIzaSyCn_EpSMATON5VAbUkdpANrgRHzZccYddw";
 
 app.use(express.json());
 
