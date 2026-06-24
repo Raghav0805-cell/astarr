@@ -1450,13 +1450,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
                 setIsCommandPaletteOpen(true);
                 onTriggerSFX("search_expand.mp3", "Activating Command-Palette search system.", "ui");
               }}
-              className="flex-1 max-w-md h-10 px-4 bg-neutral-900 hover:bg-neutral-850 border border-neutral-800 hover:border-neutral-700/50 rounded-full flex items-center justify-between text-xs text-neutral-400 transition-all outline-none shadow-inner group shrink-0"
+              className="flex-1 max-w-xl lg:max-w-2xl h-11 px-4 bg-neutral-900/90 hover:bg-neutral-850 border border-neutral-800 hover:border-neutral-700/60 rounded-full flex items-center justify-between text-xs text-neutral-400 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] hover:shadow-lg group shrink"
             >
-              <div className="flex items-center gap-2">
-                <Search className="w-4 h-4 text-neutral-500 group-hover:text-neutral-300 transition-colors" />
-                <span className="text-neutral-400 text-left">Search tracks, artists, creators...</span>
+              <div className="flex items-center gap-2.5 overflow-hidden mr-2">
+                <Search className="w-4 h-4 text-neutral-500 group-hover:text-neutral-300 transition-colors shrink-0" />
+                <span className="text-neutral-400 text-left whitespace-nowrap overflow-hidden text-ellipsis">Search tracks, artists, creators...</span>
               </div>
-              <kbd className="hidden sm:inline-flex items-center h-5 px-1.5 rounded bg-neutral-950 text-neutral-500 border border-white/5 text-[9px] font-mono tracking-widest font-black transition-colors group-hover:bg-neutral-900 group-hover:text-neutral-300">
+              <kbd className="hidden md:inline-flex items-center h-5 px-1.5 rounded bg-neutral-950 text-neutral-500 border border-white/5 text-[9px] font-mono tracking-widest font-black transition-colors group-hover:bg-neutral-900 group-hover:text-neutral-300 shrink-0">
                 CTRL K
               </kbd>
             </button>

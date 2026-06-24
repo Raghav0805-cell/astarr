@@ -15,6 +15,53 @@ interface CinematicIntroProps {
   onTriggerSFX: (filename: string, description: string, type: 'intro' | 'ui' | 'music') => void;
 }
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    }
+  }
+};
+
+const letterVariants = {
+  hidden: { opacity: 0, y: 15, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: "spring",
+      damping: 12,
+      stiffness: 150
+    }
+  }
+};
+
+const subtitleContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.03,
+      delayChildren: 0.6,
+    }
+  }
+};
+
+const subtitleLetterVariants = {
+  hidden: { opacity: 0, y: 5 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut"
+    }
+  }
+};
+
 export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete, onTriggerSFX }) => {
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
@@ -177,21 +224,61 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete, onTr
             </div>
 
             {/* Giant ASTARR! branding in display typography - Heavy Metal Chrome-plated */}
-            <h1 className="text-7xl sm:text-8xl md:text-9xl font-black tracking-[0.22em] uppercase pl-[0.22em] text-center select-none leading-none relative chrome-plated-text">
-              ASTARR
-            </h1>
+            <motion.h1 
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="text-7xl sm:text-8xl md:text-9xl font-black tracking-[0.22em] uppercase pl-[0.22em] text-center select-none leading-none relative chrome-plated-text flex flex-wrap justify-center items-center"
+            >
+              {"ASTARR".split("").map((char, index) => (
+                <motion.span
+                  key={index}
+                  variants={letterVariants}
+                  className="inline-block"
+                >
+                  {char}
+                </motion.span>
+              ))}
+            </motion.h1>
 
             {/* Subtitle brand alignment with elegant look */}
             <div className="mt-6 flex flex-col items-center gap-2 text-center">
-              <p className="text-[11px] uppercase tracking-[0.55em] text-neutral-300 font-extrabold pl-[0.55em]">
-                THE ULTIMATE FORCED FIDELITY DECK
-              </p>
+              <motion.p 
+                variants={subtitleContainerVariants}
+                initial="hidden"
+                animate="visible"
+                className="text-[11px] uppercase tracking-[0.55em] text-neutral-300 font-extrabold pl-[0.55em] flex flex-wrap justify-center items-center gap-x-[0.55em]"
+              >
+                {"THE ULTIMATE FORCED FIDELITY DECK".split(" ").map((word, wordIndex) => (
+                  <span key={wordIndex} className="inline-flex">
+                    {word.split("").map((char, charIndex) => (
+                      <motion.span
+                        key={charIndex}
+                        variants={subtitleLetterVariants}
+                        className="inline-block"
+                      >
+                        {char}
+                      </motion.span>
+                    ))}
+                  </span>
+                ))}
+              </motion.p>
               
-              <div className="h-[2px] w-48 bg-gradient-to-r from-transparent via-neutral-500/40 to-transparent my-1" />
+              <motion.div 
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: 192, opacity: 1 }}
+                transition={{ delay: 1.4, duration: 0.8, ease: "easeOut" }}
+                className="h-[2px] w-48 bg-gradient-to-r from-transparent via-neutral-500/40 to-transparent my-1" 
+              />
               
-              <p className="text-[10px] text-neutral-400 font-mono uppercase tracking-[0.25em] pl-[0.25em] max-w-md leading-relaxed font-bold">
+              <motion.p 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.8, duration: 0.6 }}
+                className="text-[10px] text-neutral-400 font-mono uppercase tracking-[0.25em] pl-[0.25em] max-w-md leading-relaxed font-bold"
+              >
                 Raghav Sharma Custom Workspace 
-              </p>
+              </motion.p>
             </div>
 
           </div>
