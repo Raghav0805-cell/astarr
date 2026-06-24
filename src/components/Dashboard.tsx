@@ -172,16 +172,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
     };
   }, []);
 
-  // Listen for keyboard Ctrl+K command palette and Escape key close
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Listen for keyboard Ctrl+K to focus search input, and Escape key to blur
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setIsCommandPaletteOpen(prev => !prev);
-        onTriggerSFX("search_expand.mp3", "Activating Command-Palette search system.", "ui");
+        if (searchInputRef.current) {
+          searchInputRef.current.focus();
+          onTriggerSFX("search_expand.mp3", "Focused search system.", "ui");
+        }
       }
       if (e.key === 'Escape') {
-        setIsCommandPaletteOpen(false);
+        if (searchInputRef.current) {
+          searchInputRef.current.blur();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -846,7 +852,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
         (t.genre && t.genre.toLowerCase().includes(cleanQ))
       );
       
-      return filtered.length > 0 ? filtered : localPool;
+      return filtered;
     }
   };
 
@@ -861,9 +867,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
     const delayDebounceFn = setTimeout(async () => {
       setIsSearching(true);
       const results = await searchYouTube(searchQuery);
-      if (results && results.length > 0) {
-        setTracks(results);
-      }
+      setTracks(results || []);
       setIsSearching(false);
     }, 600);
 
@@ -1574,22 +1578,36 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
               </button>
             </div>
 
-            {/* Central Search Pill: "What do you want to play?" styled as professional Ctrl+K trigger */}
-            <button 
-              onClick={() => {
-                setIsCommandPaletteOpen(true);
-                onTriggerSFX("search_expand.mp3", "Activating Command-Palette search system.", "ui");
-              }}
-              className="flex-1 max-w-xl lg:max-w-2xl h-11 px-4 bg-neutral-900/90 hover:bg-neutral-850 border border-neutral-800 hover:border-neutral-700/60 rounded-full flex items-center justify-between text-xs text-neutral-400 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] hover:shadow-lg group shrink"
-            >
-              <div className="flex items-center gap-2.5 overflow-hidden mr-2">
-                <Search className="w-4 h-4 text-neutral-500 group-hover:text-neutral-300 transition-colors shrink-0" />
-                <span className="text-neutral-400 text-left whitespace-nowrap overflow-hidden text-ellipsis">Search tracks, artists, creators...</span>
-              </div>
-              <kbd className="hidden md:inline-flex items-center h-5 px-1.5 rounded bg-neutral-950 text-neutral-500 border border-white/5 text-[9px] font-mono tracking-widest font-black transition-colors group-hover:bg-neutral-900 group-hover:text-neutral-300 shrink-0">
-                CTRL K
-              </kbd>
-            </button>
+            {/* Central Search Input Pill: Real interactive search system */}
+            <div className="flex-1 max-w-xl lg:max-w-2xl relative group shrink">
+              <input 
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search tracks, artists, creators..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                }}
+                className="w-full h-11 pl-11 pr-10 bg-neutral-900/90 hover:bg-neutral-850/90 border border-neutral-800 focus:border-cyan-500/50 rounded-full text-xs text-neutral-200 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(6,182,212,0.15)] placeholder-neutral-500 font-sans"
+              />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 group-focus-within:text-cyan-400 transition-colors pointer-events-none" />
+              {searchQuery ? (
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setTracks(RECOMMENDED_TRACKS);
+                    onTriggerSFX("modal_close.mp3", "Cleared search query.", "ui");
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full hover:bg-white/10 flex items-center justify-center text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              ) : (
+                <kbd className="hidden md:inline-flex absolute right-4 top-1/2 -translate-y-1/2 items-center h-5 px-1.5 rounded bg-neutral-950 text-neutral-500 border border-white/5 text-[9px] font-mono tracking-widest font-black transition-colors group-hover:bg-neutral-900 group-hover:text-neutral-300 shrink-0 pointer-events-none">
+                  CTRL K
+                </kbd>
+              )}
+            </div>
 
             {/* Top Right Action Items: Prem, installer, settings, notifications, and profile circle label "R" */}
             <div className="flex items-center gap-3">
@@ -1907,129 +1925,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
               </div>
             ) : searchQuery.trim() === '' ? (
               <>
-                {/* A. "Getting started" Title with arrow controls (Layout from screenshot) */}
+                {/* A. "Popular Songs & Hits" Album grids cards formatted exactly like screenshot album flow */}
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <h3 className="text-xl font-bold tracking-tight text-white font-sans flex items-center gap-2">
-                      <span>Getting started</span>
+                      <span>Popular Songs & Hits</span>
                       <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
-                    </h3>
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-[10px] font-mono text-neutral-500">CURATED SEED</span>
-                      <div className="flex items-center gap-1">
-                        <button className="p-1 rounded bg-black/40 hover:bg-black/80 border border-white/5 text-neutral-500 hover:text-white transition-all cursor-pointer">
-                          <ChevronLeft className="w-3.5 h-3.5" />
-                        </button>
-                        <button className="p-1 rounded bg-black/40 hover:bg-black/80 border border-white/5 text-neutral-500 hover:text-white transition-all cursor-pointer">
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Horizontal layout: Large horizontal card + Col cards (Screenshot exact structure) */}
-                  <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 w-full">
-                    
-                    {/* Double Wide Horizontal Card: "2. Try the Ambient Cyberplayer" */}
-                    <div className="xl:col-span-2 relative rounded-xl bg-gradient-to-r from-cyan-950/40 via-[#111c20] to-cyan-900/10 hover:to-cyan-900/25 border border-cyan-500/15 p-5 md:p-6 flex flex-col justify-between min-h-[160px] group transition-all duration-300 shadow-md">
-                      
-                      {/* Subtle visual vector background overlay */}
-                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(6,182,212,0.12),transparent_70%)] pointer-events-none rounded-xl" />
-                      
-                      <div className="relative z-10 flex gap-4">
-                        <div className="flex-1">
-                          <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest font-bold block mb-1">
-                            FEATURING PREMIUM FEATURES
-                          </span>
-                          <h4 className="text-lg md:text-xl font-extrabold text-white leading-tight">
-                            2. Premium Ambient Streamer
-                          </h4>
-                          <p className="text-[11px] text-neutral-400 mt-2 leading-relaxed max-w-sm">
-                            Control your high-fidelity elements with real-time spectrums without interrupting any background queries. 
-                          </p>
-                        </div>
-
-                        {/* Compact Miniplayer Art Container */}
-                        <div className="w-20 h-20 rounded-lg bg-cyan-950/40 border border-cyan-400/20 shrink-0 relative overflow-hidden hidden sm:flex items-center justify-center p-[4px] self-center">
-                          <div className="w-full h-full rounded bg-cyan-950/60 overflow-hidden flex flex-col items-center justify-center relative">
-                            <Disc className="w-8 h-8 text-cyan-400 fill-cyan-500/10 animate-spin" style={{ animationDuration: '8s' }} />
-                            <span className="text-[6px] font-mono text-cyan-300 mt-1 uppercase">VAULT CORE</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Buttons matching: "Try it", "Show more tips" */}
-                      <div className="relative z-10 flex items-center gap-4 mt-4">
-                        <button 
-                          onClick={() => {
-                            onTriggerSFX("miniplayer.mp3", "Initializing virtual floating mini-module layers.", "ui");
-                            handleTrackSelect(tracks[0]);
-                          }}
-                          className="px-4.5 py-1.5 bg-cyan-400 hover:bg-cyan-300 text-black font-extrabold text-[11px] uppercase tracking-wider rounded-full transition-transform active:scale-95 cursor-pointer shadow-md shadow-cyan-500/10"
-                        >
-                          Try it
-                        </button>
-                        <button className="text-white/70 hover:text-white font-extrabold text-[11px] uppercase tracking-wider transition-colors hover:underline cursor-pointer">
-                          Show more tips
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Grid Col 2: "Top Songs India" custom gradient card as from screenshot */}
-                    <div className="relative rounded-xl bg-gradient-to-b from-[#bd1e1e]/20 to-neutral-900 border border-white/5 p-4 flex flex-col justify-between group cursor-pointer hover:border-amber-500/20 transition-all duration-300">
-                      <div className="absolute top-3 right-3 text-red-500 shrink-0">
-                        <Disc className="w-4 h-4 fill-current animate-pulse" />
-                      </div>
-                      <div>
-                        <h5 className="text-sm font-black text-rose-100">Top Songs India</h5>
-                        <p className="text-[10px] text-rose-300/60 font-mono uppercase mt-0.5">Weekly Music Charts</p>
-                      </div>
-                      <div className="mt-8 flex items-center justify-between">
-                        <span className="text-[9px] text-neutral-500 font-mono font-medium">960k plays</span>
-                        <button 
-                          onClick={() => handleTrackSelect(tracks[1])}
-                          className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-neutral-200 hover:text-black transition-all border border-rose-500/20 font-mono text-[10px]"
-                        >
-                          <Play className="w-3.5 h-3.5 fill-current" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Grid Col 3: "Top Songs Global" custom gradient card */}
-                    <div className="relative rounded-xl bg-gradient-to-b from-amber-600/10 to-neutral-900 border border-white/5 p-4 flex flex-col justify-between group cursor-pointer hover:border-amber-500/30 transition-all duration-300">
-                      <div className="absolute top-3 right-3 text-amber-500 shrink-0">
-                        <Sliders className="w-4 h-4 " />
-                      </div>
-                      <div>
-                        <h5 className="text-sm font-black text-amber-100">Top Songs Global</h5>
-                        <p className="text-[10px] text-amber-300/60 font-mono uppercase mt-0.5">Global Master Charts</p>
-                      </div>
-                      <div className="mt-8 flex items-center justify-between">
-                        <span className="text-[9px] text-neutral-500 font-mono font-medium">2.1M streams</span>
-                        <button 
-                          onClick={() => handleTrackSelect(tracks[2])}
-                          className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-neutral-200 hover:text-black transition-all border border-amber-500/20 font-mono text-[10px]"
-                        >
-                          <Play className="w-3.5 h-3.5 fill-current" />
-                        </button>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-
-                {/* B. "Popular albums and singles" Album grids cards formatted exactly like screenshot album flow */}
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold tracking-tight text-white font-sans flex items-center gap-2">
-                      <span>Popular albums and singles</span>
                     </h3>
                     <span className="text-xs text-neutral-500 hover:text-white transition-colors cursor-pointer hover:underline">Show all</span>
                   </div>
 
                   {/* Square elements Album Box flow */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 w-full">
-                    {RECOMMENDED_TRACKS.slice(0, 4).map((track) => {
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full">
+                    {RECOMMENDED_TRACKS.map((track) => {
                       const isNowPlaying = activeTrack.id === track.id;
                       
                       return (
@@ -2157,6 +2065,105 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
                         </div>
                       );
                     })}
+                  </div>
+                </div>
+
+                {/* B. "Getting started" Title with arrow controls (Layout from screenshot) */}
+                <div className="flex flex-col gap-3 mt-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-bold tracking-tight text-white/90 font-sans flex items-center gap-2">
+                      <span>Curated Guides & Diagnostics</span>
+                    </h3>
+                  </div>
+
+                  {/* Horizontal layout: Large horizontal card + Col cards (Screenshot exact structure) */}
+                  <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 w-full">
+                    
+                    {/* Double Wide Horizontal Card: "2. Try the Ambient Cyberplayer" */}
+                    <div className="xl:col-span-2 relative rounded-xl bg-gradient-to-r from-cyan-950/40 via-[#111c20] to-cyan-900/10 hover:to-cyan-900/25 border border-cyan-500/15 p-5 md:p-6 flex flex-col justify-between min-h-[160px] group transition-all duration-300 shadow-md">
+                      
+                      {/* Subtle visual vector background overlay */}
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(6,182,212,0.12),transparent_70%)] pointer-events-none rounded-xl" />
+                      
+                      <div className="relative z-10 flex gap-4">
+                        <div className="flex-1">
+                          <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest font-bold block mb-1">
+                            FEATURING PREMIUM FEATURES
+                          </span>
+                          <h4 className="text-lg md:text-xl font-extrabold text-white leading-tight">
+                            2. Premium Ambient Streamer
+                          </h4>
+                          <p className="text-[11px] text-neutral-400 mt-2 leading-relaxed max-w-sm">
+                            Control your high-fidelity elements with real-time spectrums without interrupting any background queries. 
+                          </p>
+                        </div>
+
+                        {/* Compact Miniplayer Art Container */}
+                        <div className="w-20 h-20 rounded-lg bg-cyan-950/40 border border-cyan-400/20 shrink-0 relative overflow-hidden hidden sm:flex items-center justify-center p-[4px] self-center">
+                          <div className="w-full h-full rounded bg-cyan-950/60 overflow-hidden flex flex-col items-center justify-center relative">
+                            <Disc className="w-8 h-8 text-cyan-400 fill-cyan-500/10 animate-spin" style={{ animationDuration: '8s' }} />
+                            <span className="text-[6px] font-mono text-cyan-300 mt-1 uppercase">VAULT CORE</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Buttons matching: "Try it", "Show more tips" */}
+                      <div className="relative z-10 flex items-center gap-4 mt-4">
+                        <button 
+                          onClick={() => {
+                            onTriggerSFX("miniplayer.mp3", "Initializing virtual floating mini-module layers.", "ui");
+                            handleTrackSelect(tracks[0]);
+                          }}
+                          className="px-4.5 py-1.5 bg-cyan-400 hover:bg-cyan-300 text-black font-extrabold text-[11px] uppercase tracking-wider rounded-full transition-transform active:scale-95 cursor-pointer shadow-md shadow-cyan-500/10"
+                        >
+                          Try it
+                        </button>
+                        <button className="text-white/70 hover:text-white font-extrabold text-[11px] uppercase tracking-wider transition-colors hover:underline cursor-pointer">
+                          Show more tips
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Grid Col 2: "Top Songs India" custom gradient card as from screenshot */}
+                    <div className="relative rounded-xl bg-gradient-to-b from-[#bd1e1e]/20 to-neutral-900 border border-white/5 p-4 flex flex-col justify-between group cursor-pointer hover:border-amber-500/20 transition-all duration-300">
+                      <div className="absolute top-3 right-3 text-red-500 shrink-0">
+                        <Disc className="w-4 h-4 fill-current animate-pulse" />
+                      </div>
+                      <div>
+                        <h5 className="text-sm font-black text-rose-100">Top Songs India</h5>
+                        <p className="text-[10px] text-rose-300/60 font-mono uppercase mt-0.5">Weekly Music Charts</p>
+                      </div>
+                      <div className="mt-8 flex items-center justify-between">
+                        <span className="text-[9px] text-neutral-500 font-mono font-medium">960k plays</span>
+                        <button 
+                          onClick={() => handleTrackSelect(tracks[1])}
+                          className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-neutral-200 hover:text-black transition-all border border-rose-500/20 font-mono text-[10px]"
+                        >
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Grid Col 3: "Top Songs Global" custom gradient card */}
+                    <div className="relative rounded-xl bg-gradient-to-b from-amber-600/10 to-neutral-900 border border-white/5 p-4 flex flex-col justify-between group cursor-pointer hover:border-amber-500/30 transition-all duration-300">
+                      <div className="absolute top-3 right-3 text-amber-500 shrink-0">
+                        <Sliders className="w-4 h-4 " />
+                      </div>
+                      <div>
+                        <h5 className="text-sm font-black text-amber-100">Top Songs Global</h5>
+                        <p className="text-[10px] text-amber-300/60 font-mono uppercase mt-0.5">Global Master Charts</p>
+                      </div>
+                      <div className="mt-8 flex items-center justify-between">
+                        <span className="text-[9px] text-neutral-500 font-mono font-medium">2.1M streams</span>
+                        <button 
+                          onClick={() => handleTrackSelect(tracks[2])}
+                          className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500 text-neutral-200 hover:text-black transition-all border border-amber-500/20 font-mono text-[10px]"
+                        >
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                        </button>
+                      </div>
+                    </div>
+
                   </div>
                 </div>
 
@@ -3463,7 +3470,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
                   if (e.key === 'Enter' && searchQuery.trim() !== '') {
                     setIsSearching(true);
                     searchYouTube(searchQuery).then(results => {
-                      setTracks(results);
+                      setTracks(results || []);
                       setIsSearching(false);
                     });
                   }
@@ -3481,7 +3488,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
               
               <div className="flex flex-col gap-0.5">
                 {(searchQuery 
-                  ? RECOMMENDED_TRACKS.filter(t => 
+                  ? (tracks.length > 0 ? tracks : RECOMMENDED_TRACKS).filter(t => 
                       t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                       t.artist.toLowerCase().includes(searchQuery.toLowerCase()) || 
                       (t.genre && t.genre.toLowerCase().includes(searchQuery.toLowerCase()))

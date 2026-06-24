@@ -140,6 +140,103 @@ export const RECOMMENDED_TRACKS: Track[] = [
       { time: 130, text: "Hummer ch baith ke ghumme billo putt jatt da" },
       { time: 137, text: "Cheques chalde ne lakh de thallon thallay ni" }
     ]
+  },
+  {
+    id: "track-elevated",
+    title: "Elevated",
+    artist: "Shubh",
+    album: "Still Rollin",
+    duration: 200,
+    coverUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=80",
+    genre: "Punjabi Trap",
+    streamCount: "4.1M",
+    releasedYear: 2023,
+    colorTheme: "from-blue-600 to-indigo-900",
+    tag: "Hit",
+    lyrics: [
+      { time: 0, text: "✦ [Elevated Intro Beats] ✦" },
+      { time: 5, text: "Shubh... Still Rollin" },
+      { time: 10, text: "Yeah, elevated minds, elevated vibes..." },
+      { time: 15, text: "Billion dollar dreams, we do it in high style..." },
+      { time: 25, text: "Connecting dual-channel pre-amps on the workspace line" },
+      { time: 35, text: "Resonance nodes balanced elegantly on the cybernetic grid" }
+    ]
+  },
+  {
+    id: "track-295",
+    title: "295",
+    artist: "Sidhu Moose Wala",
+    album: "Moosetape",
+    duration: 270,
+    coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80",
+    genre: "Punjabi Rap",
+    streamCount: "12M",
+    releasedYear: 2021,
+    colorTheme: "from-red-600 to-neutral-900",
+    tag: "Legendary",
+    lyrics: [
+      { time: 0, text: "✦ [Powerful Piano Chords Intro] ✦" },
+      { time: 8, text: "Dass banya ki ae 295 da..." },
+      { time: 15, text: "The legend Sidhu Moose Wala, forever with us..." },
+      { time: 25, text: "Breathe in... matching reference DSP frequency response" }
+    ]
+  },
+  {
+    id: "track-52bars",
+    title: "52 Bars",
+    artist: "Karan Aujla",
+    album: "Four You",
+    duration: 211,
+    coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=80",
+    genre: "Punjabi Pop",
+    streamCount: "3.5M",
+    releasedYear: 2023,
+    colorTheme: "from-amber-500 to-yellow-600",
+    tag: "Trending",
+    lyrics: [
+      { time: 0, text: "✦ [Trap Hip Hop Intro] ✦" },
+      { time: 6, text: "Aujla ni aujla!" },
+      { time: 12, text: "Making memories on the heavy basslines..." },
+      { time: 20, text: "Perfect mechanical copper delivery to studio monitors" }
+    ]
+  },
+  {
+    id: "track-lover",
+    title: "Lover",
+    artist: "Diljit Dosanjh",
+    album: "MoonChild Era",
+    duration: 191,
+    coverUrl: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=500&auto=format&fit=crop&q=80",
+    genre: "Punjabi Pop",
+    streamCount: "4.8M",
+    releasedYear: 2021,
+    colorTheme: "from-pink-500 to-rose-600",
+    tag: "Sensational",
+    lyrics: [
+      { time: 0, text: "✦ [MoonChild Theme Intro] ✦" },
+      { time: 6, text: "Kurti teri cheent di, koka tera lishka marda..." },
+      { time: 12, text: "Diljit Dosanjh with high fidelity vibrations..." },
+      { time: 22, text: "Zero phase distortion monitoring in high definition" }
+    ]
+  },
+  {
+    id: "track-starboy",
+    title: "Starboy",
+    artist: "The Weeknd",
+    album: "Starboy",
+    duration: 230,
+    coverUrl: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&auto=format&fit=crop&q=80",
+    genre: "Synthpop",
+    streamCount: "15M",
+    releasedYear: 2016,
+    colorTheme: "from-purple-600 to-indigo-950",
+    tag: "Global Classic",
+    lyrics: [
+      { time: 0, text: "✦ [Daft Punk Synth Intro] ✦" },
+      { time: 7, text: "I'm tryna put you in the worst mood, ah..." },
+      { time: 14, text: "P1 cleaner than your church shoes, ah..." },
+      { time: 21, text: "Milli point two on the dashboard, ah..." }
+    ]
   }
 ];
 
