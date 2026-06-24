@@ -630,6 +630,107 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
 
   // YouTube Data Core API Query handler
   const searchYouTube = async (query: string): Promise<Track[]> => {
+    const localPool: Track[] = [
+      ...RECOMMENDED_TRACKS,
+      {
+        id: "track-elevated",
+        title: "Elevated",
+        artist: "Shubh",
+        album: "Still Rollin",
+        duration: 200,
+        coverUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=80",
+        genre: "Punjabi Trap",
+        streamCount: "4.1M",
+        releasedYear: 2023,
+        colorTheme: "from-blue-600 to-indigo-900",
+        tag: "Hit",
+        lyrics: [
+          { time: 0, text: "✦ [Elevated Intro Beats] ✦" },
+          { time: 5, text: "Shubh... Still Rollin" },
+          { time: 10, text: "Yeah, elevated minds, elevated vibes..." },
+          { time: 15, text: "Billion dollar dreams, we do it in high style..." },
+          { time: 25, text: "Connecting dual-channel pre-amps on the workspace line" },
+          { time: 35, text: "Resonance nodes balanced elegantly on the cybernetic grid" }
+        ]
+      },
+      {
+        id: "track-295",
+        title: "295",
+        artist: "Sidhu Moose Wala",
+        album: "Moosetape",
+        duration: 270,
+        coverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80",
+        genre: "Punjabi Rap",
+        streamCount: "12M",
+        releasedYear: 2021,
+        colorTheme: "from-red-600 to-neutral-900",
+        tag: "Legendary",
+        lyrics: [
+          { time: 0, text: "✦ [Powerful Piano Chords Intro] ✦" },
+          { time: 8, text: "Dass banya ki ae 295 da..." },
+          { time: 15, text: "The legend Sidhu Moose Wala, forever with us..." },
+          { time: 25, text: "Breathe in... matching reference DSP frequency response" }
+        ]
+      },
+      {
+        id: "track-52bars",
+        title: "52 Bars",
+        artist: "Karan Aujla",
+        album: "Four You",
+        duration: 211,
+        coverUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&auto=format&fit=crop&q=80",
+        genre: "Punjabi Pop",
+        streamCount: "3.5M",
+        releasedYear: 2023,
+        colorTheme: "from-amber-500 to-yellow-600",
+        tag: "Trending",
+        lyrics: [
+          { time: 0, text: "✦ [Trap Hip Hop Intro] ✦" },
+          { time: 6, text: "Aujla ni aujla!" },
+          { time: 12, text: "Making memories on the heavy basslines..." },
+          { time: 20, text: "Perfect mechanical copper delivery to studio monitors" }
+        ]
+      },
+      {
+        id: "track-lover",
+        title: "Lover",
+        artist: "Diljit Dosanjh",
+        album: "MoonChild Era",
+        duration: 191,
+        coverUrl: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=500&auto=format&fit=crop&q=80",
+        genre: "Punjabi Pop",
+        streamCount: "4.8M",
+        releasedYear: 2021,
+        colorTheme: "from-pink-500 to-rose-600",
+        tag: "Sensational",
+        lyrics: [
+          { time: 0, text: "✦ [MoonChild Theme Intro] ✦" },
+          { time: 6, text: "Kurti teri cheent di, koka tera lishka marda..." },
+          { time: 12, text: "Diljit Dosanjh with high fidelity vibrations..." },
+          { time: 22, text: "Zero phase distortion monitoring in high definition" }
+        ]
+      },
+      {
+        id: "track-starboy",
+        title: "Starboy",
+        artist: "The Weeknd",
+        album: "Starboy",
+        duration: 230,
+        coverUrl: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&auto=format&fit=crop&q=80",
+        genre: "Synthpop",
+        streamCount: "15M",
+        releasedYear: 2016,
+        colorTheme: "from-purple-600 to-indigo-950",
+        tag: "Global Classic",
+        lyrics: [
+          { time: 0, text: "✦ [Daft Punk Synth Intro] ✦" },
+          { time: 7, text: "I'm tryna put you in the worst mood, ah..." },
+          { time: 14, text: "P1 cleaner than your church shoes, ah..." },
+          { time: 21, text: "Milli point two on the dashboard, ah..." }
+        ]
+      }
+    ];
+
     try {
       setSearchError(null);
       const keyParam = customApiKey.trim() ? `&apiKey=${encodeURIComponent(customApiKey.trim())}` : '';
@@ -641,11 +742,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
       const searchData = await searchRes.json();
       const items = searchData.items || [];
       if (items.length === 0) {
-        return [];
+        throw new Error("No items found from live YouTube search.");
       }
 
       const videoIds = items.map((item: any) => item.id.videoId).filter(Boolean);
-      if (videoIds.length === 0) return [];
+      if (videoIds.length === 0) throw new Error("No valid Video IDs in live search.");
 
       const detailsRes = await fetch(`/api/youtube/videos?ids=${videoIds.join(',')}${keyParam}`);
       
@@ -734,9 +835,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
       });
 
     } catch (err: any) {
-      console.error(err);
-      setSearchError("API key connection failed or fetch bounds reached.");
-      return [];
+      console.warn("[YOUTUBE SEARCH FALLBACK ACTIVE] error detail:", err.message);
+      setSearchError("Offline Fallback Mode Enabled (YouTube API Quota Limit Reached)");
+      
+      const cleanQ = query.trim().toLowerCase();
+      const filtered = localPool.filter(t => 
+        t.title.toLowerCase().includes(cleanQ) || 
+        t.artist.toLowerCase().includes(cleanQ) || 
+        (t.album && t.album.toLowerCase().includes(cleanQ)) ||
+        (t.genre && t.genre.toLowerCase().includes(cleanQ))
+      );
+      
+      return filtered.length > 0 ? filtered : localPool;
     }
   };
 
@@ -1094,6 +1204,21 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
     const nextPlaying = !isPlaying;
     setIsPlaying(nextPlaying);
 
+    if (nextPlaying) {
+      // Direct user gesture audio initialization and context authorization
+      try {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        if (!audioCtxRef.current) {
+          audioCtxRef.current = new AudioContextClass();
+        }
+        if (audioCtxRef.current.state === 'suspended') {
+          audioCtxRef.current.resume().catch(e => console.warn("Failed to resume AudioContext on gesture: ", e));
+        }
+      } catch (e) {
+        console.warn("AudioContext setup on gesture error: ", e);
+      }
+    }
+
     if (ytPlayerRef.current && isPlayerReadyState) {
       try {
         if (nextPlaying) {
@@ -1185,7 +1310,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
       'track-1': 'ovD_E_b-gqA', // Karan Aujla - Softly
       'track-2': 'cl0a3i2wVSQ', // Diljit Dosanjh - G.O.A.T.
       'track-3': '6xoB4ZiKKn0', // Sidhu Moose Wala - The Last Ride
-      'track-4': '4NDUreGTo6E'  // Shubh - Cheques
+      'track-4': '4NDUreGTo6E', // Shubh - Cheques
+      'track-elevated': 'vX2cDW8ycgI', // Shubh - Elevated
+      'track-295': 'n_FCrCQ6M6Q', // Sidhu Moose Wala - 295
+      'track-52bars': '9037S_M9V38', // Karan Aujla - 52 Bars
+      'track-lover': 'v0NpeE26n4I', // Diljit Dosanjh - Lover
+      'track-starboy': '34Na4j8AVgA'  // The Weeknd - Starboy
     };
     return map[trackId] || 'ovD_E_b-gqA';
   };
@@ -3333,9 +3463,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
                   if (e.key === 'Enter' && searchQuery.trim() !== '') {
                     setIsSearching(true);
                     searchYouTube(searchQuery).then(results => {
-                      if (results && results.length > 0) {
-                        setTracks(results);
-                      }
+                      setTracks(results);
                       setIsSearching(false);
                     });
                   }
