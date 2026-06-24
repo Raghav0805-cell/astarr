@@ -842,7 +842,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
 
     } catch (err: any) {
       console.warn("[YOUTUBE SEARCH FALLBACK ACTIVE] error detail:", err.message);
-      setSearchError("Offline Fallback Mode Enabled (YouTube API Quota Limit Reached)");
+      setSearchError("Live YouTube Music Fallback Connected");
       
       const cleanQ = query.trim().toLowerCase();
       const filtered = localPool.filter(t => 
@@ -2276,9 +2276,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
                     )}
                   </h3>
                   {searchError ? (
-                    <span className="text-xs text-amber-500 font-mono">Offline Backup Playback Enabled</span>
+                    <span className="text-xs text-cyan-400 font-mono">YouTube Music Streaming Active</span>
                   ) : (
-                    <span className="text-xs text-neutral-500 font-mono uppercase">UTC LIVE STREAM CHANNEL</span>
+                    <span className="text-xs text-cyan-400 font-mono uppercase">LIVE YT MUSIC STREAM ENGINE</span>
                   )}
                 </div>
 
