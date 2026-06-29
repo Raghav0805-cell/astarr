@@ -228,13 +228,19 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete, onTr
               variants={containerVariants}
               initial="hidden"
               animate="visible"
-              className="text-7xl sm:text-8xl md:text-9xl font-black tracking-[0.22em] uppercase pl-[0.22em] text-center select-none leading-none relative chrome-plated-text flex flex-wrap justify-center items-center"
+              className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black tracking-[0.1em] uppercase pl-[0.1em] text-center select-none leading-none relative chrome-plated-text flex flex-nowrap justify-center items-center whitespace-nowrap overflow-visible"
             >
-              {"ASTARR".split("").map((char, index) => (
+              {"ASTARR!".split("").map((char, index) => (
                 <motion.span
                   key={index}
                   variants={letterVariants}
-                  className="inline-block"
+                  className="inline-block transition-all hover:scale-110 duration-350 cursor-default"
+                  style={{ 
+                    textShadow: '0 0 35px rgba(255,255,255,0.35)',
+                    background: 'linear-gradient(135deg, #ffffff 0%, #a1a1aa 50%, #ffffff 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                  }}
                 >
                   {char}
                 </motion.span>

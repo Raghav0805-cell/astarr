@@ -1480,12 +1480,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
                 setIsFounderOpen(true);
                 onTriggerSFX("founder_lounge_activate.mp3", "Welcome to the Chief Technical Headquarters.", "ui");
               }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-xs text-neutral-400 hover:bg-white/10 hover:text-white border border-dashed border-white/10 transition-all cursor-pointer"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs text-neutral-400 hover:bg-white/5 hover:text-white border border-zinc-500/20 hover:border-zinc-400/40 transition-all cursor-pointer bg-black/20"
             >
-              <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+              <Sparkles className="w-4 h-4 text-zinc-300 animate-pulse" />
               <div className="flex flex-col leading-none">
-                <span className="font-extrabold text-neutral-100">Founder's Choice</span>
-                <span className="text-[7.5px] text-neutral-500 font-mono tracking-tighter mt-0.5">GLOBAL RADIO</span>
+                <span className="font-extrabold text-white tracking-wider uppercase text-[10px]">Founder</span>
+                <span className="text-[7.5px] text-zinc-500 font-mono tracking-tighter mt-0.5">CHIEF ARCHITECT</span>
               </div>
             </button>
           </div>
@@ -1630,35 +1630,63 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
               </button>
             </div>
 
-            {/* Central Search Input Pill: Real interactive search system */}
-            <div className="flex-1 max-w-xl lg:max-w-2xl relative group shrink">
-              <input 
-                ref={searchInputRef}
-                type="text"
-                placeholder="Search tracks, artists, creators..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                }}
-                className="w-full h-11 pl-11 pr-10 bg-neutral-900/90 hover:bg-neutral-850/90 border border-neutral-800 focus:border-cyan-500/50 rounded-full text-xs text-neutral-200 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(6,182,212,0.15)] placeholder-neutral-500 font-sans"
-              />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 group-focus-within:text-cyan-400 transition-colors pointer-events-none" />
-              {searchQuery ? (
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setTracks(RECOMMENDED_TRACKS);
-                    onTriggerSFX("modal_close.mp3", "Cleared search query.", "ui");
+            {/* Central Search Input Pill: Real interactive search system with integrated long button */}
+            <div className="flex-1 max-w-xl lg:max-w-2xl flex items-center shrink">
+              <div className="relative flex-1 group">
+                <input 
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search tracks, artists, creators..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
                   }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full hover:bg-white/10 flex items-center justify-center text-neutral-400 hover:text-white transition-colors cursor-pointer"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              ) : (
-                <kbd className="hidden md:inline-flex absolute right-4 top-1/2 -translate-y-1/2 items-center h-5 px-1.5 rounded bg-neutral-950 text-neutral-500 border border-white/5 text-[9px] font-mono tracking-widest font-black transition-colors group-hover:bg-neutral-900 group-hover:text-neutral-300 shrink-0 pointer-events-none">
-                  CTRL K
-                </kbd>
-              )}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && searchQuery.trim() !== '') {
+                      setIsSearching(true);
+                      searchYouTube(searchQuery).then(results => {
+                        setTracks(results || []);
+                        setIsSearching(false);
+                        onTriggerSFX("search_trigger.mp3", "Searching live YouTube nodes.", "ui");
+                      });
+                    }
+                  }}
+                  className="w-full h-11 pl-11 pr-10 bg-neutral-900/90 hover:bg-neutral-850/90 border border-neutral-800 focus:border-cyan-500/50 rounded-l-full rounded-r-none text-xs text-neutral-200 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(6,182,212,0.15)] placeholder-neutral-500 font-sans"
+                />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 group-focus-within:text-cyan-400 transition-colors pointer-events-none" />
+                {searchQuery ? (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setTracks(RECOMMENDED_TRACKS);
+                      onTriggerSFX("modal_close.mp3", "Cleared search query.", "ui");
+                    }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full hover:bg-white/10 flex items-center justify-center text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                ) : (
+                  <kbd className="hidden md:inline-flex absolute right-4 top-1/2 -translate-y-1/2 items-center h-5 px-1.5 rounded bg-neutral-950 text-neutral-500 border border-white/5 text-[9px] font-mono tracking-widest font-black transition-colors group-hover:bg-neutral-900 group-hover:text-neutral-300 shrink-0 pointer-events-none">
+                    CTRL K
+                  </kbd>
+                )}
+              </div>
+              
+              <button
+                onClick={async () => {
+                  if (searchQuery.trim()) {
+                    setIsSearching(true);
+                    const results = await searchYouTube(searchQuery);
+                    setTracks(results || []);
+                    setIsSearching(false);
+                    onTriggerSFX("search_trigger.mp3", "Searching live YouTube nodes.", "ui");
+                  }
+                }}
+                className="h-11 px-6 rounded-r-full bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-900 hover:from-zinc-100 hover:via-white hover:to-zinc-200 text-neutral-300 hover:text-black font-mono font-bold text-[10px] uppercase tracking-wider border-y border-r border-neutral-800 hover:border-zinc-700/50 transition-all active:scale-95 flex items-center gap-1.5 shadow-lg shadow-black/40 cursor-pointer shrink-0"
+              >
+                <span>SEARCH AUDIOS</span>
+                <ChevronRight className="w-3 h-3 text-neutral-500 group-hover:text-black transition-colors" />
+              </button>
             </div>
 
             {/* Top Right Action Items: Prem, installer, settings, notifications, and profile circle label "R" */}
@@ -4016,23 +4044,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
       {/* FOUNDER'S VIP HEADQUARTERS LOUNGE OVERLAY */}
       {isFounderOpen && (
         <div 
-          className="fixed inset-0 bg-black/92 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn"
+          className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fadeIn"
           onClick={() => {
             setIsFounderOpen(false);
             onTriggerSFX("modal_close.mp3", "Dismissed Founder headquarters.", "ui");
           }}
         >
           <div 
-            className="relative w-full max-w-lg bg-[#0b0b0e] border border-amber-500/25 rounded-3xl p-6 shadow-[0_0_40px_rgba(245,158,11,0.12)] flex flex-col gap-6 scale-100 transition-all duration-300"
+            className="relative w-full max-w-lg bg-[#070709] border border-zinc-700/35 rounded-3xl p-6 shadow-[0_0_50px_rgba(255,255,255,0.03)] flex flex-col gap-6 scale-100 transition-all duration-300"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Holographic Glowing Amber Bar */}
-            <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-amber-500 via-yellow-400 to-cyan-400 rounded-t-3xl" />
+            {/* Holographic Glowing Silver Platinum Bar */}
+            <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-zinc-500 via-white to-zinc-600 rounded-t-3xl" />
             
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500 animate-spin" style={{ animationDuration: '6s' }} />
-                <h3 className="text-xs font-black uppercase tracking-widest text-amber-400 font-mono">
+                <Sparkles className="w-4 h-4 text-zinc-300 animate-spin" style={{ animationDuration: '6s' }} />
+                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-300 font-mono">
                   FOUNDER PROFILE STATE
                 </h3>
               </div>
@@ -4047,17 +4075,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
               </button>
             </div>
 
-            {/* Premium Gold Frame Avatar and Title layout */}
+            {/* Premium Platinum Frame Avatar and Title layout */}
             <div className="flex flex-col sm:flex-row items-center gap-5 pb-5 border-b border-white/5">
               
-              {/* Raghav Monogram Golden Shield */}
-              <div className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-300 p-0.5 shadow-xl shrink-0 flex items-center justify-center">
-                <div className="w-full h-full rounded-2xl bg-neutral-950 flex flex-col items-center justify-center relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-amber-500/5 group-hover:bg-transparent transition-colors" />
-                  <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-tr from-amber-400 to-yellow-250 tracking-tighter font-display leading-none">
+              {/* Raghav Monogram Platinum Shield */}
+              <div className="w-24 h-24 rounded-2xl bg-gradient-to-tr from-zinc-400 via-white to-zinc-600 p-0.5 shadow-xl shrink-0 flex items-center justify-center">
+                <div className="w-full h-full rounded-2xl bg-[#0b0b0d] flex flex-col items-center justify-center relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-white/5 group-hover:bg-transparent transition-colors" />
+                  <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-tr from-white to-zinc-400 tracking-tighter font-display leading-none">
                     RS
                   </span>
-                  <span className="text-[7px] font-mono text-amber-500 mt-1 uppercase tracking-widest leading-none">CHIEF ARCHITECT</span>
+                  <span className="text-[7px] font-mono text-zinc-400 mt-1.5 uppercase tracking-widest leading-none">CHIEF ARCHITECT</span>
                 </div>
               </div>
 
@@ -4066,29 +4094,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
                 <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-none">
                   Raghav Sharma
                 </h2>
-                <p className="text-xs font-mono uppercase tracking-widest text-[#d97706] mt-2 font-black">
+                <p className="text-xs font-mono uppercase tracking-widest text-zinc-400 mt-2 font-black">
                   Systems Founder & Main Developer
                 </p>
                 
                 <div className="flex flex-col gap-1 mt-3 font-mono text-[10px] text-neutral-400">
                   <p className="flex items-center gap-2 justify-center sm:justify-start">
-                    <span className="text-neutral-600">Secure Channel:</span>
+                    <span className="text-neutral-500">Secure Channel:</span>
                     <a 
                       href="mailto:garry09904@gmail.com" 
-                      className="text-amber-400 font-bold hover:underline transition-all"
+                      className="text-zinc-100 font-bold hover:underline transition-all"
                     >
                       garry09904@gmail.com
                     </a>
                   </p>
                   <p className="flex items-center gap-2 justify-center sm:justify-start">
-                    <span className="text-neutral-600">Delhi-Lab IP:</span>
+                    <span className="text-neutral-500">Delhi-Lab IP:</span>
                     <span className="text-neutral-300 font-medium">103.211.231.14 (Active Node)</span>
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* THE AWESOME TAGLINES SECTION (" kuchh tagdi lines ") */}
+            {/* THE AWESOME TAGLINES SECTION */}
             <div className="flex flex-col gap-3">
               <span className="text-[9px] font-mono text-neutral-500 uppercase tracking-widest">Compiler Manifesto & Quotes</span>
               
@@ -4099,7 +4127,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
                     theme: "BUILD THE APEX CORE"
                   },
                   {
-                    quote: "WE ARE NOT IN THE BUSINESS OF ACCUMULATING FEATURITIS. WE SCULPT COGNITIVE Auditory WAVEFORMS FOR UNCOMPRESSED MINDS.",
+                    quote: "WE ARE NOT IN THE BUSINESS OF ACCUMULATING FEATURITIS. WE SCULPT COGNITIVE AUDITORY WAVEFORMS FOR UNCOMPRESSED MINDS.",
                     theme: "FREQUENCY CALIBRATION"
                   },
                   {
@@ -4109,10 +4137,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
                 ].map((tagline, tIdx) => (
                   <div 
                     key={tIdx} 
-                    className="p-3 bg-neutral-900/40 border border-[#f59e0b]/15 hover:border-amber-500/35 transition-all duration-300 rounded-xl relative overflow-hidden group"
+                    className="p-3 bg-neutral-900/30 border border-white/5 hover:border-white/10 transition-all duration-300 rounded-xl relative overflow-hidden group"
                   >
-                    <div className="absolute top-0 left-0 h-full w-[2px] bg-gradient-to-b from-amber-500 to-yellow-350" />
-                    <span className="text-[7px] font-mono text-[#d97706] uppercase tracking-widest font-black leading-none block mb-1">
+                    <div className="absolute top-0 left-0 h-full w-[2px] bg-gradient-to-b from-zinc-400 to-zinc-600" />
+                    <span className="text-[7px] font-mono text-zinc-400 uppercase tracking-widest font-black leading-none block mb-1">
                       {tagline.theme}
                     </span>
                     <p className="text-[10px] text-neutral-300 font-sans italic tracking-wide font-medium leading-relaxed uppercase">
@@ -4131,7 +4159,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
                 setIsFounderOpen(false);
                 onTriggerSFX("modal_close.mp3", "Dismissed Founder headquarters.", "ui");
               }}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-black text-xs uppercase tracking-widest transition-transform active:scale-95 shadow-md shadow-amber-500/10 cursor-pointer"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-zinc-300 via-white to-zinc-400 text-black font-extrabold text-xs uppercase tracking-widest transition-all duration-200 hover:brightness-110 active:scale-98 shadow-md shadow-white/5 cursor-pointer border border-white/20"
             >
               Return to cyber command console
             </button>
