@@ -977,7 +977,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
           rel: 0,
           modestbranding: 1,
           mute: isMuted ? 1 : 0,
-          playsinline: 1
+          playsinline: 1,
+          origin: window.location.origin
         },
         events: {
           onReady: (event: any) => {
