@@ -28,12 +28,18 @@ const INVIDIOUS_INSTANCES = [
 ];
 
 const runInvidiousSearch = async (query: string): Promise<any> => {
-  const searchQueryString = `${query} official audio`;
+  const searchQueryString = query.trim();
   for (const instance of INVIDIOUS_INSTANCES) {
     try {
       const url = `${instance}/api/v1/search?q=${encodeURIComponent(searchQueryString)}&type=video`;
-      console.log(`[Invidious Fetch] Trying: ${instance} for query: "${query}"`);
-      const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
+      console.log(`[Invidious Fetch] Trying: ${instance} for query: "${searchQueryString}"`);
+      const res = await fetch(url, { 
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Accept": "application/json"
+        },
+        signal: AbortSignal.timeout(5000) 
+      });
       if (res.ok) {
         const json = await res.json();
         if (Array.isArray(json) && json.length > 0) {

@@ -1630,7 +1630,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
               </button>
             </div>
 
-            {/* Central Search Input Pill: Real interactive search system with integrated long button */}
+            {/* Central Search Input Pill: Real interactive search system (Spotify style) */}
             <div className="flex-1 max-w-xl lg:max-w-2xl flex items-center shrink">
               <div className="relative flex-1 group">
                 <input 
@@ -1639,7 +1639,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
                   placeholder="Search tracks, artists, creators..."
                   value={searchQuery}
                   onChange={(e) => {
-                    setSearchQuery(e.target.value);
+                    const val = e.target.value;
+                    setSearchQuery(val);
+                    if (val.trim() !== '') {
+                      setSelectedPlaylistId(null);
+                    }
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && searchQuery.trim() !== '') {
@@ -1651,9 +1655,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
                       });
                     }
                   }}
-                  className="w-full h-11 pl-11 pr-10 bg-neutral-900/90 hover:bg-neutral-850/90 border border-neutral-800 focus:border-cyan-500/50 rounded-l-full rounded-r-none text-xs text-neutral-200 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(6,182,212,0.15)] placeholder-neutral-500 font-sans"
+                  className="w-full h-11 pl-11 pr-10 bg-neutral-900/90 hover:bg-neutral-850/90 border border-neutral-800 focus:border-zinc-700/50 rounded-full text-xs text-neutral-200 transition-all duration-300 outline-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)] focus:shadow-[0_0_15px_rgba(255,255,255,0.05)] placeholder-neutral-500 font-sans"
                 />
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 group-focus-within:text-cyan-400 transition-colors pointer-events-none" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 group-focus-within:text-white transition-colors pointer-events-none" />
                 {searchQuery ? (
                   <button
                     onClick={() => {
@@ -1671,22 +1675,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onTriggerSFX, onLogout }) 
                   </kbd>
                 )}
               </div>
-              
-              <button
-                onClick={async () => {
-                  if (searchQuery.trim()) {
-                    setIsSearching(true);
-                    const results = await searchYouTube(searchQuery);
-                    setTracks(results || []);
-                    setIsSearching(false);
-                    onTriggerSFX("search_trigger.mp3", "Searching live YouTube nodes.", "ui");
-                  }
-                }}
-                className="h-11 px-6 rounded-r-full bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-900 hover:from-zinc-100 hover:via-white hover:to-zinc-200 text-neutral-300 hover:text-black font-mono font-bold text-[10px] uppercase tracking-wider border-y border-r border-neutral-800 hover:border-zinc-700/50 transition-all active:scale-95 flex items-center gap-1.5 shadow-lg shadow-black/40 cursor-pointer shrink-0"
-              >
-                <span>SEARCH AUDIOS</span>
-                <ChevronRight className="w-3 h-3 text-neutral-500 group-hover:text-black transition-colors" />
-              </button>
             </div>
 
             {/* Top Right Action Items: Prem, installer, settings, notifications, and profile circle label "R" */}
